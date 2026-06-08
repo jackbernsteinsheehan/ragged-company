@@ -152,14 +152,58 @@
       margin-bottom: 1rem;
     }
     .about-img {
+      position: relative;
       width: 100%;
       aspect-ratio: 4/3;
-      background:
-        linear-gradient(rgba(30,18,8,0.25), rgba(30,18,8,0.25)),
-        url('https://images.unsplash.com/photo-1501386761578-eaa54b3cbf50?w=800&q=80') center/cover;
       border: 4px solid var(--border);
       box-shadow: 8px 8px 0 var(--rust);
+      overflow: hidden;
     }
+    .carousel-track {
+      display: flex;
+      height: 100%;
+      transition: transform 0.6s ease;
+    }
+    .carousel-slide {
+      flex: 0 0 100%;
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      object-fit: cover;
+    }
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Special Elite', cursive;
+      font-size: 1.4rem;
+      color: var(--cream);
+      background: rgba(30,18,8,0.55);
+      border: 1.5px solid var(--gold);
+      cursor: pointer;
+      transition: background 0.2s;
+      z-index: 2;
+    }
+    .carousel-btn:hover { background: var(--rust); }
+    .carousel-btn.prev { left: 0.75rem; }
+    .carousel-btn.next { right: 0.75rem; }
+    .carousel-dots {
+      position: absolute;
+      bottom: 0.75rem; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 0.5rem;
+      z-index: 2;
+    }
+    .carousel-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(245,240,232,0.5);
+      border: 1px solid var(--ink);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .carousel-dot.active { background: var(--gold-lt); }
 
     /* ── SHOWS ── */
     #shows { background: var(--cream); }
@@ -373,7 +417,17 @@
           <p>We're Ragged Company, a country &amp; blues cover band featuring 2 guitars, a rhythm section, keyboards, and vocals. We play songs people love to sing and dance along to.</p>
           <p></p>
         </div>
-        <div class="about-img"></div>
+        <div class="about-img">
+          <div class="carousel-track">
+            <img class="carousel-slide" src="img/DSC_0273.JPG" alt="Ragged Company live" />
+            <img class="carousel-slide" src="img/DSC_0291.JPG" alt="Ragged Company live" />
+            <img class="carousel-slide" src="img/DSC_0293.JPG" alt="Ragged Company live" />
+            <img class="carousel-slide" src="img/DSC_0298.JPG" alt="Ragged Company live" />
+          </div>
+          <button class="carousel-btn prev" aria-label="Previous photo">&#8249;</button>
+          <button class="carousel-btn next" aria-label="Next photo">&#8250;</button>
+          <div class="carousel-dots"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -546,6 +600,42 @@
   </footer>
 
   <script>
+    (function initCarousel() {
+      const carousel = document.querySelector('.about-img');
+      const track = carousel.querySelector('.carousel-track');
+      const slides = carousel.querySelectorAll('.carousel-slide');
+      const dotsWrap = carousel.querySelector('.carousel-dots');
+      let index = 0;
+      let timer;
+
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', 'Go to photo ' + (i + 1));
+        dot.addEventListener('click', () => goTo(i));
+        dotsWrap.appendChild(dot);
+      });
+      const dots = dotsWrap.querySelectorAll('.carousel-dot');
+
+      function goTo(i) {
+        index = (i + slides.length) % slides.length;
+        track.style.transform = 'translateX(-' + (index * 100) + '%)';
+        dots.forEach((d, di) => d.classList.toggle('active', di === index));
+      }
+
+      function next() { goTo(index + 1); }
+      function prev() { goTo(index - 1); }
+
+      function startAuto() { timer = setInterval(next, 5000); }
+      function resetAuto() { clearInterval(timer); startAuto(); }
+
+      carousel.querySelector('.carousel-btn.next').addEventListener('click', () => { next(); resetAuto(); });
+      carousel.querySelector('.carousel-btn.prev').addEventListener('click', () => { prev(); resetAuto(); });
+      dots.forEach(d => d.addEventListener('click', resetAuto));
+
+      startAuto();
+    })();
+
     async function handleSubmit(e) {
       e.preventDefault();
       const form = e.target;
